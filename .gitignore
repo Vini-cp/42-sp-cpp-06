@@ -1,2 +1,4 @@
 ./ex0*/obj/*
 ./ex00/conversion
+./ex01/serialization
+./ex02/identity
