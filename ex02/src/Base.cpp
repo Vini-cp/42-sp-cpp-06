@@ -60,7 +60,7 @@ void identify( Base& p )
 {
     try
     {
-        dynamic_cast< A& >( p );
+        A test = dynamic_cast< A& >( p );
         std::cout << "A" << std::endl;
         return ;
     }
@@ -70,17 +70,17 @@ void identify( Base& p )
 
     try
     {
-        dynamic_cast< B& >( p );
+        B test = dynamic_cast< B& >( p );
         std::cout << "B" << std::endl;
         return ;
     }
-    catch(const std::bad_cast& e )
+    catch( const std::bad_cast& e )
     {
     }
 
     try
     {
-        dynamic_cast< C& >( p );
+        C test = dynamic_cast< C& >( p );
         std::cout << "C" << std::endl;
         return ;
     }
