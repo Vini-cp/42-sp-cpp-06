@@ -23,5 +23,12 @@ int	main( void )
 
     std::cout << "======================================" << std::endl;
 
+    std::cout << std::endl << "============== DesrFake ==============" << std::endl;
+
+    FakeData* lDeserializeFakeData = fakeDeserialize( lSerializedData );
+    std::cout << *lDeserializeFakeData;
+
+    std::cout << "======================================" << std::endl << std::endl;
+
     return 0;
 }
