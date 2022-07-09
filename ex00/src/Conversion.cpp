@@ -55,100 +55,40 @@ Conversion& Conversion::operator=( const Conversion& prConversion )
 {
     if ( this == &prConversion ) return *this;
 
-    mToConvert = prConversion.getString(); 
-    mChar = prConversion.getChar();
-    mInt = prConversion.getInt();
-    mFloat = prConversion.getFloat();
-    mDouble = prConversion.getDouble();
-    mIsPseudoLiteral = prConversion.getIsPseudoLiteral();
-    mIsImpossibleToParse = prConversion.getIsImpossibleToParse();
-    mConversionType = prConversion.getConversionType();
-    mIntOverflow = prConversion.getIntOverflow();
+    mToConvert = prConversion.mToConvert; 
+    mChar = prConversion.mChar;
+    mInt = prConversion.mInt;
+    mFloat = prConversion.mFloat;
+    mDouble = prConversion.mDouble;
+    mIsPseudoLiteral = prConversion.mIsPseudoLiteral;
+    mIsImpossibleToParse = prConversion.mIsImpossibleToParse;
+    mConversionType = prConversion.mConversionType;
+    mIntOverflow = prConversion.mIntOverflow;
+
     return *this;
 }
 
 //------------------------------------------------------------------------------
 
-void Conversion::setString( const std::string& pToConvert )
+bool Conversion::CheckCharExistence( char c )
 {
-    mToConvert = pToConvert;
-}
-
-//------------------------------------------------------------------------------
-
-std::string Conversion::getString( void ) const
-{
-    return mToConvert;
-}
-
-//------------------------------------------------------------------------------
-
-char Conversion::getChar( void ) const
-{
-    return mChar;
-}
-
-//------------------------------------------------------------------------------
-
-int Conversion::getInt( void ) const
-{
-    return mInt;
-}
-
-//------------------------------------------------------------------------------
-
-float Conversion::getFloat( void ) const
-{
-    return mFloat;
-}
-
-//------------------------------------------------------------------------------
-
-double Conversion::getDouble( void ) const
-{
-    return mDouble;
-}
-
-//------------------------------------------------------------------------------
-
-bool Conversion::getIsPseudoLiteral( void ) const
-{
-    return mIsPseudoLiteral;
-}
-
-//------------------------------------------------------------------------------
-
-bool Conversion::getIsImpossibleToParse( void ) const
-{
-    return mIsImpossibleToParse;
-}
-
-//------------------------------------------------------------------------------
-
-conversionType Conversion::getConversionType( void ) const
-{
-    return mConversionType;
-}
-
-//------------------------------------------------------------------------------
-
-bool Conversion::getIntOverflow( void ) const
-{
-    return mIntOverflow;
+    return mToConvert.find_first_of( c ) != std::string::npos;
 }
 
 //------------------------------------------------------------------------------
 
 bool Conversion::hasDuplicateChar( char c )
 {
+    if ( !CheckCharExistence( c ) ) return false;
+
     return ( mToConvert.find_first_of( c ) != mToConvert.find_last_of( c ) );
 }
 
 //------------------------------------------------------------------------------
 
-bool Conversion::IsCharWellPositioned( char c, int idx )
+bool Conversion::IsCharPoorlyPositioned( char c, int idx )
 {
-    if ( mToConvert.find_first_of( c ) == std::string::npos ) return false;
+    if ( !CheckCharExistence( c ) ) return false;
 
     return ( mToConvert.find_first_of( c ) != static_cast< unsigned int >( idx ) );
 }
@@ -157,9 +97,11 @@ bool Conversion::IsCharWellPositioned( char c, int idx )
 
 bool Conversion::handleParseErrors( void )
 {
-    if ( mToConvert.find_first_not_of( "+-0123456789.f" ) != std::string::npos ||
-         hasDuplicateChar( 'f' ) || hasDuplicateChar( '.' ) || hasDuplicateChar( '+' ) || hasDuplicateChar( '-' ) ||
-         IsCharWellPositioned( 'f', mToConvert.length() - 1 ) || IsCharWellPositioned( '+', 0 ) || IsCharWellPositioned( '-', 0 ) )
+    if ( hasDuplicateChar( 'f' ) || hasDuplicateChar( '.' ) || hasDuplicateChar( '+' ) || hasDuplicateChar( '-' ) ||
+         IsCharPoorlyPositioned( 'f', mToConvert.length() - 1 ) ||
+         IsCharPoorlyPositioned( '+', 0 ) || IsCharPoorlyPositioned( '-', 0 ) ||
+         ( mToConvert.size() > 1 && mToConvert.find_first_of("abcdeghijklmnopqrstuvwxyz ") != std::string::npos )
+        )
     {
         return true;
     }
@@ -175,6 +117,18 @@ bool Conversion::handlePseudoLiterals( void )
          mToConvert == "-inff" || mToConvert == "+inff" || mToConvert == "nanf" )
     {
         return true;
+    }
+
+    return false;
+}
+
+//------------------------------------------------------------------------------
+
+bool Conversion::handleOverflow( void )
+{
+    if ( mToConvert.size() >= 10 )
+    {
+        return ( mToConvert.compare("2147483647") > 0 || mToConvert.compare("-2147483648") > 0 );
     }
 
     return false;
@@ -254,7 +208,7 @@ void Conversion::Convert( void )
 
     if ( mIsImpossibleToParse ) return ;
 
-    mIntOverflow = ( mToConvert.compare("2147483647") > 0 || mToConvert.compare("-2147483648") < 0 );
+    mIntOverflow = handleOverflow();
 
     mConversionType = setConversionType();
 
@@ -302,9 +256,16 @@ void Conversion::displayNone( void )
 
 void Conversion::displayValues( void )
 {
-    std::string lCharToPrint = ( std::isprint( mChar ) ) ? mChar + "\0" : "Non displayable";
-
-    std::cout << "char: " << lCharToPrint << std::endl;
+    std::cout << "char: ";
+    if ( std::isprint( mChar ) )
+    {
+        std::cout << "'" << mChar << "'";
+    }
+    else
+    {
+        std::cout << "Non displayable";
+    }
+    std::cout << std::endl;
 
     if ( mIntOverflow )
     {
@@ -314,6 +275,7 @@ void Conversion::displayValues( void )
     {
         std::cout << "int: " << mInt << std::endl;
     }
+
     std::cout << "float: " << std::fixed << std::setprecision(1) << mFloat << "f" << std::endl
               << "double: " << mDouble << std::endl;
 }
