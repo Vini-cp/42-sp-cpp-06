@@ -58,54 +58,34 @@ void identify( Base* p )
 
 void identify( Base& p )
 {
-    bool exceptionCaught = false;
-
     try
     {
         dynamic_cast< A& >( p );
-    }
-    catch( const std::bad_cast& e )
-    {
-        exceptionCaught = true;
-    }
-
-    if ( !exceptionCaught )
-    {
         std::cout << "A" << std::endl;
         return ;
     }
-    
-    exceptionCaught = false;
-    
+    catch( const std::bad_cast& e )
+    {
+    }
+
     try
     {
         dynamic_cast< B& >( p );
-    }
-    catch(const std::bad_cast& e )
-    {
-        exceptionCaught = true;
-    }
-
-    if ( !exceptionCaught )
-    {
         std::cout << "B" << std::endl;
         return ;
     }
+    catch(const std::bad_cast& e )
+    {
+    }
 
-    exceptionCaught = false;
-    
     try
     {
         dynamic_cast< C& >( p );
-    }
-    catch( const std::bad_cast& e )
-    {
-        exceptionCaught = true;
-    }
-
-    if ( !exceptionCaught )
-    {
         std::cout << "C" << std::endl;
         return ;
     }
+    catch( const std::bad_cast& e )
+    {
+    }
+
 }
